@@ -1,2 +1,2 @@
-# gemini-api
+# gemini
 Java library for gemini api
