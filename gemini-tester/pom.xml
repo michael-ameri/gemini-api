@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>swiss.ameri</groupId>
+        <artifactId>gemini</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>gemini-tester</artifactId>
+
+    <properties>
+        <maven.compiler.release>17</maven.compiler.release>
+
+        <gemini.version>${project.version}</gemini.version>
+
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>swiss.ameri</groupId>
+            <artifactId>gemini-api</artifactId>
+            <version>${gemini.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>swiss.ameri</groupId>
+            <artifactId>gemini-gson</artifactId>
+            <version>${gemini.version}</version>
+        </dependency>
+    </dependencies>
+
+</project>
