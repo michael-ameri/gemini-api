@@ -90,19 +90,7 @@ public class GenAi {
         return execute(() -> {
             HttpRequest request = HttpRequest.newBuilder()
                     .POST(HttpRequest.BodyPublishers.ofString(
-                            // todo from input, also add safetySettings, generationConfig
-                            jsonParser.toJson(
-                                    new GenerateContentRequest(
-                                            List.of(
-                                                    new GenerationContent(
-                                                            "user",
-                                                            List.of(
-                                                                    new GenerationPart("Write long a story about a magic backpack.", null, null)
-                                                            )
-                                                    )
-                                            )
-                                    )
-                            )
+                            jsonParser.toJson(convert(model.contents()))
                     ))
                     .uri(URI.create("%s/%s:streamGenerateContent?alt=sse&key=%s".formatted(urlPrefix, model.modelName(), apiKey)))
                     .build();
@@ -129,19 +117,7 @@ public class GenAi {
             CompletableFuture<HttpResponse<String>> response = client.sendAsync(
                     HttpRequest.newBuilder()
                             .POST(HttpRequest.BodyPublishers.ofString(
-                                    // todo from input, also add safetySettings, generationConfig
-                                    jsonParser.toJson(
-                                            new GenerateContentRequest(
-                                                    List.of(
-                                                            new GenerationContent(
-                                                                    "user",
-                                                                    List.of(
-                                                                            new GenerationPart("Write long a story about a magic backpack.", null, null)
-                                                                    )
-                                                            )
-                                                    )
-                                            )
-                                    )
+                                    jsonParser.toJson(convert(model.contents()))
                             ))
                             .uri(URI.create("%s/%s:generateContent?key=%s".formatted(urlPrefix, model.modelName(), apiKey)))
                             .build(),
@@ -158,6 +134,60 @@ public class GenAi {
                         }
                     });
         });
+    }
+
+    private static GenerateContentRequest convert(List<Content> contents) {
+        // todo add safetySettings, generationConfig
+        List<GenerationContent> generationContents = contents.stream()
+                .map(content -> {
+                    // todo change to "switch" over sealed type with jdk 21
+                    if (content instanceof Content.TextContent textContent) {
+                        return new GenerationContent(
+                                textContent.role(),
+                                List.of(
+                                        new GenerationPart(
+                                                textContent.text(),
+                                                null,
+                                                null
+                                        )
+                                )
+                        );
+                    } else if (content instanceof Content.ImageContent imageContent) {
+                        return new GenerationContent(
+                                imageContent.role(),
+                                List.of(
+                                        new GenerationPart(
+                                                null,
+                                                imageContent.image().mimeType(),
+                                                imageContent.image().imageBase64()
+                                        )
+                                )
+                        );
+                    } else if (content instanceof Content.TextAndImagesContent textAndImagesContent) {
+                        return new GenerationContent(
+                                textAndImagesContent.role(),
+                                Stream.concat(
+                                        Stream.of(
+                                                new GenerationPart(
+                                                        textAndImagesContent.text(),
+                                                        null,
+                                                        null
+                                                )
+                                        ),
+                                        textAndImagesContent.images().stream()
+                                                .map(imageData -> new GenerationPart(
+                                                        null,
+                                                        imageData.mimeType(),
+                                                        imageData.imageBase64()
+                                                ))
+                                ).toList()
+                        );
+                    } else {
+                        throw new RuntimeException("Unexpected content:\n" + content);
+                    }
+                })
+                .toList();
+        return new GenerateContentRequest(generationContents);
     }
 
     private <T> T execute(ThrowingSupplier<T> supplier) {
