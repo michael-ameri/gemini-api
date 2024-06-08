@@ -5,13 +5,24 @@ import swiss.ameri.gemini.gson.GsonJsonParser;
 import swiss.ameri.gemini.spi.JsonParser;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
+/**
+ * Example program to test the {@link GenAi} functionality.
+ */
 public class GeminiTester {
 
-    public static void main(String[] args) throws ExecutionException, InterruptedException, TimeoutException {
+    private GeminiTester() {
+        throw new AssertionError("Not instantiable");
+    }
+
+    /**
+     * Entry point. takes the Gemini API key as argument. See <a href="https://aistudio.google.com/app/apikey">aistuio.google.com</a> to generate a new API key.
+     *
+     * @param args should receive the API key as argument
+     * @throws Exception if something goes wrong
+     */
+    public static void main(String[] args) throws Exception {
         JsonParser parser = new GsonJsonParser();
         String apiKey = args[0];
 

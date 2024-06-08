@@ -12,6 +12,8 @@ public class GsonJsonParser implements JsonParser {
 
     /**
      * Create a {@link JsonParser} with a custom {@link Gson}.
+     *
+     * @param gson instance to use
      */
     public GsonJsonParser(Gson gson) {
         this.gson = gson;
