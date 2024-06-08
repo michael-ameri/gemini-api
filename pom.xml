@@ -23,6 +23,12 @@
         </developer>
     </developers>
 
+    <scm>
+        <connection>scm:git:git://github.com/michael-ameri/gemini-api.git</connection>
+        <developerConnection>scm:git:ssh://github.com:michael-ameri/gemini-api.git</developerConnection>
+        <url>https://github.com/michael-ameri/gemini-api/tree/master</url>
+    </scm>
+
 
     <modules>
         <module>gemini-api</module>
