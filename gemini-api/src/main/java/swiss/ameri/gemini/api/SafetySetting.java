@@ -1,10 +1,17 @@
 package swiss.ameri.gemini.api;
 
+/**
+ * Safety settings according to <a href="https://ai.google.dev/api/rest/v1beta/SafetySetting#harmblockthreshold">SafetySetting</a>.
+ */
 public record SafetySetting(
         String category,
         String threshold
 ) {
 
+    /**
+     * Create a SafetySetting by using the provided enums. Use the constructor for custom string values that might
+     * be missing in the enums.
+     */
     public static SafetySetting of(
             HarmCategory category,
             HarmBlockThreshold threshold

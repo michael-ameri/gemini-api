@@ -2,6 +2,14 @@ package swiss.ameri.gemini.api;
 
 import java.util.List;
 
+/**
+ * Contains all the information needed for Gemini API to generate new content.
+ *
+ * @param modelName        to be used. see {@link ModelVariant}. Must start with "models/"
+ * @param contents         given as input to Gemini API
+ * @param safetySettings   optional, to adjust safety settings
+ * @param generationConfig optional, to configure the prompt
+ */
 public record GenerativeModel(
         String modelName,
         List<Content> contents,
