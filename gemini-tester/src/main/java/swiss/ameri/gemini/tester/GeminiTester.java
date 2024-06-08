@@ -4,7 +4,6 @@ import swiss.ameri.gemini.api.*;
 import swiss.ameri.gemini.gson.GsonJsonParser;
 import swiss.ameri.gemini.spi.JsonParser;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -38,18 +37,17 @@ public class GeminiTester {
         );
 
         System.out.println("-----");
-        var model = GenerativeModel.of(
-                ModelVariant.GEMINI_1_0_PRO,
-                List.of(
-                        new Content.TextContent(
-                                Content.Role.USER.roleName(),
-                                "Write a 300 word story about a magic backpack."
-                        )
-                ),
-                List.of(
-                        SafetySetting.of(SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH)
-                ),
-                new GenerationConfig(
+        var model = GenerativeModel.builder()
+                .modelName(ModelVariant.GEMINI_1_0_PRO)
+                .addContent(new Content.TextContent(
+                        Content.Role.USER.roleName(),
+                        "Write a 300 word story about a magic backpack."
+                ))
+                .addSafetySetting(SafetySetting.of(
+                        SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                        SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
+                ))
+                .generationConfig(new GenerationConfig(
                         null,
                         null,
                         null,
@@ -57,8 +55,8 @@ public class GeminiTester {
                         null,
                         null,
                         null
-                )
-        );
+                ))
+                .build();
         genAi.generateContent(model)
                 .thenAccept(System.out::println)
                 .get(20, TimeUnit.SECONDS);

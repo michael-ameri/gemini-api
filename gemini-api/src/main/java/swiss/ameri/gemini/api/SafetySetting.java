@@ -17,8 +17,8 @@ public record SafetySetting(
             HarmBlockThreshold threshold
     ) {
         return new SafetySetting(
-                category.name(),
-                threshold.name()
+                category == null ? null : category.name(),
+                threshold == null ? null : threshold.name()
         );
     }
 

@@ -67,8 +67,9 @@ public class GenAi {
         });
     }
 
-    /***
+    /**
      * Get information of a model. Can be used to create a {@link GenerativeModel}.
+     *
      * @param model of which the information is wanted.
      * @see #listModels()
      */
