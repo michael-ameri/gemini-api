@@ -19,6 +19,6 @@ public enum ModelVariant {
     }
 
     public String variant() {
-        return variant;
+        return "models/" + variant;
     }
 }

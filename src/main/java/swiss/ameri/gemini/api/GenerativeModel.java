@@ -1,15 +1,14 @@
 package swiss.ameri.gemini.api;
 
 public record GenerativeModel(
-        String modelName,
-        String apiKey
+        String modelName
 ) {
 
     public static GenerativeModel of(
-            ModelVariant modelVariant,
-            String apiKey
+            ModelVariant modelVariant
     ) {
-        return new GenerativeModel(modelVariant.variant(), apiKey);
+        // todo add builder, which accepts modelVariant
+        return new GenerativeModel(modelVariant.variant());
     }
 
 }
