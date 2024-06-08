@@ -65,7 +65,7 @@ Example:
 `1beta.0.0.1`
 
 # Requirements
-- >= Java 17
+- \>= Java 17
 
 # Modules
 The project is composed of the following maven modules, which are deployed to maven central.
