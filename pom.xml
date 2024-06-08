@@ -16,6 +16,14 @@
         </license>
     </licenses>
 
+    <developers>
+        <developer>
+            <name>Michael Ameri</name>
+            <email>michael.ameri@gmail.com</email>
+        </developer>
+    </developers>
+
+
     <modules>
         <module>gemini-api</module>
         <module>gemini-gson</module>
