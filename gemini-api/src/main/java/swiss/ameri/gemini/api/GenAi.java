@@ -187,7 +187,7 @@ public class GenAi {
                     }
                 })
                 .toList();
-        return new GenerateContentRequest(generationContents, model.safetySettings());
+        return new GenerateContentRequest(generationContents, model.safetySettings(), model.generationConfig());
     }
 
     private <T> T execute(ThrowingSupplier<T> supplier) {
@@ -235,7 +235,8 @@ public class GenAi {
 
     private record GenerateContentRequest(
             List<GenerationContent> contents,
-            List<SafetySetting> safetySettings
+            List<SafetySetting> safetySettings,
+            GenerationConfig generationConfig
     ) {
     }
 

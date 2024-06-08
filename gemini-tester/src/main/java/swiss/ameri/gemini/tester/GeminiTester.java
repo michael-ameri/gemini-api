@@ -37,6 +37,15 @@ public class GeminiTester {
                 ),
                 List.of(
                         SafetySetting.of(SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH)
+                ),
+                new GenerationConfig(
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
                 )
         );
         genAi.generateContent(model)
