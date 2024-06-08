@@ -11,6 +11,9 @@
     </parent>
 
     <artifactId>gemini-gson</artifactId>
+    <description>
+        Provides an example GSON implementation for JSON operations.
+    </description>
 
     <properties>
         <maven.compiler.release>17</maven.compiler.release>

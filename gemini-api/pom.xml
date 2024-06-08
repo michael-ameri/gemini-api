@@ -10,6 +10,10 @@
     </parent>
 
     <artifactId>gemini-api</artifactId>
+    <description>
+        Java library to access the gemini API.
+        See swiss.ameri:gemini-gson for an example JsonParser implementation using gson
+    </description>
 
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
