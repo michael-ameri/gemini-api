@@ -152,18 +152,18 @@ public class GenAi {
                                         )
                                 )
                         );
-                    } else if (content instanceof Content.ImageContent imageContent) {
+                    } else if (content instanceof Content.MediaContent imageContent) {
                         return new GenerationContent(
                                 imageContent.role(),
                                 List.of(
                                         new GenerationPart(
                                                 null,
-                                                imageContent.image().mimeType(),
-                                                imageContent.image().imageBase64()
+                                                imageContent.media().mimeType(),
+                                                imageContent.media().mediaBase64()
                                         )
                                 )
                         );
-                    } else if (content instanceof Content.TextAndImagesContent textAndImagesContent) {
+                    } else if (content instanceof Content.TextAndMediaContent textAndImagesContent) {
                         return new GenerationContent(
                                 textAndImagesContent.role(),
                                 Stream.concat(
@@ -174,11 +174,11 @@ public class GenAi {
                                                         null
                                                 )
                                         ),
-                                        textAndImagesContent.images().stream()
+                                        textAndImagesContent.media().stream()
                                                 .map(imageData -> new GenerationPart(
                                                         null,
                                                         imageData.mimeType(),
-                                                        imageData.imageBase64()
+                                                        imageData.mediaBase64()
                                                 ))
                                 ).toList()
                         );

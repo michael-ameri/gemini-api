@@ -13,24 +13,24 @@ public sealed interface Content {
     ) implements Content {
     }
 
-    record ImageContent(
+    record MediaContent(
             String role,
-            ImageData image
+            MediaData media
     ) implements Content {
         // todo test
     }
 
-    record TextAndImagesContent(
+    record TextAndMediaContent(
             String role,
             String text,
-            List<ImageData> images
+            List<MediaData> media
     ) implements Content {
         // todo test
     }
 
-    record ImageData(
+    record MediaData(
             String mimeType,
-            String imageBase64
+            String mediaBase64
     ) {
     }
 
