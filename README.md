@@ -35,8 +35,10 @@ See gemini-tester for some examples.
                 apiKey,
                 parser
         );
+        
     // list available models
-    genAi.listModels().forEach(System.out::println)
+    genAi.listModels().forEach(System.out::println);
+    
     // create a prompt
     var model = GenerativeModel.builder()
         .modelName(ModelVariant.GEMINI_1_0_PRO)
@@ -45,6 +47,7 @@ See gemini-tester for some examples.
                 "Write a 300 word story about a magic backpack."
         ))
         .build();
+    
     // execute the prompt, wait for the full response
     genAi.generateContent(model)
                 .thenAccept(System.out::println)
