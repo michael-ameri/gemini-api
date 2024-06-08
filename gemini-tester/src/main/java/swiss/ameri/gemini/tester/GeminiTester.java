@@ -1,9 +1,6 @@
 package swiss.ameri.gemini.tester;
 
-import swiss.ameri.gemini.api.Content;
-import swiss.ameri.gemini.api.GenAi;
-import swiss.ameri.gemini.api.GenerativeModel;
-import swiss.ameri.gemini.api.ModelVariant;
+import swiss.ameri.gemini.api.*;
 import swiss.ameri.gemini.gson.GsonJsonParser;
 import swiss.ameri.gemini.spi.JsonParser;
 
@@ -30,22 +27,24 @@ public class GeminiTester {
         );
 
         System.out.println("-----");
-        genAi.generateContent(GenerativeModel.of(ModelVariant.GEMINI_1_0_PRO, List.of(
+        var model = GenerativeModel.of(
+                ModelVariant.GEMINI_1_0_PRO,
+                List.of(
                         new Content.TextContent(
                                 Content.Role.USER.roleName(),
-                                "Write long a story about a magic backpack."
+                                "Write a 300 word story about a magic backpack."
                         )
-                )))
+                ),
+                List.of(
+                        SafetySetting.of(SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH)
+                )
+        );
+        genAi.generateContent(model)
                 .thenAccept(System.out::println)
                 .get(20, TimeUnit.SECONDS);
 
         System.out.println("-----");
-        genAi.generateContentStream(GenerativeModel.of(ModelVariant.GEMINI_1_0_PRO, List.of(
-                        new Content.TextContent(
-                                Content.Role.USER.roleName(),
-                                "Write long a story about a magic backpack."
-                        )
-                )))
+        genAi.generateContentStream(model)
                 .forEach(System.out::println);
     }
 }

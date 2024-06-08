@@ -90,7 +90,7 @@ public class GenAi {
         return execute(() -> {
             HttpRequest request = HttpRequest.newBuilder()
                     .POST(HttpRequest.BodyPublishers.ofString(
-                            jsonParser.toJson(convert(model.contents()))
+                            jsonParser.toJson(convert(model))
                     ))
                     .uri(URI.create("%s/%s:streamGenerateContent?alt=sse&key=%s".formatted(urlPrefix, model.modelName(), apiKey)))
                     .build();
@@ -117,7 +117,7 @@ public class GenAi {
             CompletableFuture<HttpResponse<String>> response = client.sendAsync(
                     HttpRequest.newBuilder()
                             .POST(HttpRequest.BodyPublishers.ofString(
-                                    jsonParser.toJson(convert(model.contents()))
+                                    jsonParser.toJson(convert(model))
                             ))
                             .uri(URI.create("%s/%s:generateContent?key=%s".formatted(urlPrefix, model.modelName(), apiKey)))
                             .build(),
@@ -136,9 +136,9 @@ public class GenAi {
         });
     }
 
-    private static GenerateContentRequest convert(List<Content> contents) {
+    private static GenerateContentRequest convert(GenerativeModel model) {
         // todo add safetySettings, generationConfig
-        List<GenerationContent> generationContents = contents.stream()
+        List<GenerationContent> generationContents = model.contents().stream()
                 .map(content -> {
                     // todo change to "switch" over sealed type with jdk 21
                     if (content instanceof Content.TextContent textContent) {
@@ -187,7 +187,7 @@ public class GenAi {
                     }
                 })
                 .toList();
-        return new GenerateContentRequest(generationContents);
+        return new GenerateContentRequest(generationContents, model.safetySettings());
     }
 
     private <T> T execute(ThrowingSupplier<T> supplier) {
@@ -234,9 +234,11 @@ public class GenAi {
     }
 
     private record GenerateContentRequest(
-            List<GenerationContent> contents
+            List<GenerationContent> contents,
+            List<SafetySetting> safetySettings
     ) {
     }
+
 
     private record GenerationContent(
             String role,
