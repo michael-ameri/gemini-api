@@ -176,7 +176,6 @@ public class GenAi {
                                 List.of(
                                         new GenerationPart(
                                                 textContent.text(),
-                                                null,
                                                 null
                                         )
                                 )
@@ -187,8 +186,10 @@ public class GenAi {
                                 List.of(
                                         new GenerationPart(
                                                 null,
-                                                imageContent.media().mimeType(),
-                                                imageContent.media().mediaBase64()
+                                                new InlineData(
+                                                        imageContent.media().mimeType(),
+                                                        imageContent.media().mediaBase64()
+                                                )
                                         )
                                 )
                         );
@@ -199,15 +200,16 @@ public class GenAi {
                                         Stream.of(
                                                 new GenerationPart(
                                                         textAndImagesContent.text(),
-                                                        null,
                                                         null
                                                 )
                                         ),
                                         textAndImagesContent.media().stream()
                                                 .map(imageData -> new GenerationPart(
                                                         null,
-                                                        imageData.mimeType(),
-                                                        imageData.mediaBase64()
+                                                        new InlineData(
+                                                                imageData.mimeType(),
+                                                                imageData.mediaBase64()
+                                                        )
                                                 ))
                                 ).toList()
                         );
@@ -279,7 +281,13 @@ public class GenAi {
     }
 
     private record GenerationPart(
+            // contains one or the other
             String text,
+            InlineData inline_data
+    ) {
+    }
+
+    private record InlineData(
             String mime_type,
             String data
     ) {

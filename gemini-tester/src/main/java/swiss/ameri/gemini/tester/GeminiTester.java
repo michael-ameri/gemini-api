@@ -4,6 +4,9 @@ import swiss.ameri.gemini.api.*;
 import swiss.ameri.gemini.gson.GsonJsonParser;
 import swiss.ameri.gemini.spi.JsonParser;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Base64;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -38,6 +41,7 @@ public class GeminiTester {
         generateContent(genAi);
         generateContentStream(genAi);
         multiChatTurn(genAi);
+        textAndImage(genAi);
     }
 
     private static void multiChatTurn(GenAi genAi) {
@@ -79,8 +83,8 @@ public class GeminiTester {
     private static GenerativeModel createStoryModel() {
         return GenerativeModel.builder()
                 .modelName(ModelVariant.GEMINI_1_0_PRO)
-                .addContent(new Content.TextContent(
-                        Content.Role.USER.roleName(),
+                .addContent(Content.textContent(
+                        Content.Role.USER,
                         "Write a 50 word story about a magic backpack."
                 ))
                 .addSafetySetting(SafetySetting.of(
@@ -110,5 +114,33 @@ public class GeminiTester {
         System.out.println("----- List models");
         genAi.listModels()
                 .forEach(System.out::println);
+    }
+
+    private static void textAndImage(GenAi genAi) throws IOException {
+        System.out.println("----- text and image");
+        var model = GenerativeModel.builder()
+                .modelName(ModelVariant.GEMINI_1_0_PRO_VISION)
+                .addContent(
+                        Content.textAndMediaContentBuilder()
+                                .role(Content.Role.USER)
+                                .text("What is in this image?")
+                                .addMedia(new Content.MediaData(
+                                        "image/png",
+                                        loadSconesImage()
+                                ))
+                                .build()
+                ).build();
+        genAi.generateContent(model)
+                .thenAccept(System.out::println)
+                .join();
+    }
+
+    public static String loadSconesImage() throws IOException {
+        try (InputStream is = GeminiTester.class.getClassLoader().getResourceAsStream("scones.png")) {
+            if (is == null) {
+                throw new IllegalStateException("Image not found! ");
+            }
+            return Base64.getEncoder().encodeToString(is.readAllBytes());
+        }
     }
 }
