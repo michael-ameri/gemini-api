@@ -16,8 +16,8 @@ Add the `gemini-api` dependency. Maven example (replace ${gemini.version} with t
         </dependency>
 
 ## JsonParser
-In order for this library to stay free of dependencies, the user must provide an implementation of the `swiss.ameri.gemini.spi.JsonParser` class.
-Alternatively, an example gson implementation can be used with the following dependency (which includes a gson dependency)
+In order for this library to stay free of dependencies, the user must provide an implementation of the `swiss.ameri.gemini.spi.JsonParser` interface.
+Alternatively, an example Gson implementation can be used with the following dependency (which includes a Gson dependency)
 
         <dependency>
             <groupId>swiss.ameri</groupId>
