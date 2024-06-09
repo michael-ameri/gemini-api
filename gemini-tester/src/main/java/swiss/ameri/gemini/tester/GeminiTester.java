@@ -30,18 +30,17 @@ public class GeminiTester {
         JsonParser parser = new GsonJsonParser();
         String apiKey = args[0];
 
-        GenAi genAi = new GenAi(
-                apiKey,
-                parser
-        );
+        try (var genAi = new GenAi(apiKey, parser)) {
+            // each method represents an example usage
+            listModels(genAi);
+            getModel(genAi);
+            generateContent(genAi);
+            generateContentStream(genAi);
+            multiChatTurn(genAi);
+            textAndImage(genAi);
+        }
 
-        // each method represents an example usage
-        listModels(genAi);
-        getModel(genAi);
-        generateContent(genAi);
-        generateContentStream(genAi);
-        multiChatTurn(genAi);
-        textAndImage(genAi);
+
     }
 
     private static void multiChatTurn(GenAi genAi) {
@@ -66,17 +65,27 @@ public class GeminiTester {
     }
 
     private static void generateContentStream(GenAi genAi) {
-        System.out.println("----- Generate content (streaming)");
+        System.out.println("----- Generate content (streaming) -- with usage meta data");
         var model = createStoryModel();
         genAi.generateContentStream(model)
-                .forEach(System.out::println);
+                .forEach(x -> {
+                    System.out.println(x);
+                    // note that the usage metadata is updated as it arrives
+                    System.out.println(genAi.usageMetadata(x.id()));
+                    System.out.println(genAi.safetyRatings(x.id()));
+                });
     }
 
     private static void generateContent(GenAi genAi) throws InterruptedException, ExecutionException, TimeoutException {
         var model = createStoryModel();
         System.out.println("----- Generate content (blocking)");
         genAi.generateContent(model)
-                .thenAccept(System.out::println)
+                .thenAccept(gcr -> {
+                    System.out.println(gcr);
+                    System.out.println("----- Generate content (blocking) usage meta data & safety ratings");
+                    System.out.println(genAi.usageMetadata(gcr.id()));
+                    System.out.println(genAi.safetyRatings(gcr.id()).stream().map(GenAi.SafetyRating::toTypedSafetyRating).toList());
+                })
                 .get(20, TimeUnit.SECONDS);
     }
 
