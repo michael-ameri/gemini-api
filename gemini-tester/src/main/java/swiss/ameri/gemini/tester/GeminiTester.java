@@ -31,17 +31,17 @@ public class GeminiTester {
         );
         genAi.listModels()
                 .forEach(System.out::println);
-        System.out.println("-----");
+        System.out.println("----- Get Model");
         System.out.println(
                 genAi.getModel(ModelVariant.GEMINI_1_0_PRO)
         );
 
-        System.out.println("-----");
+        System.out.println("----- Generate content (blocking)");
         var model = GenerativeModel.builder()
                 .modelName(ModelVariant.GEMINI_1_0_PRO)
                 .addContent(new Content.TextContent(
                         Content.Role.USER.roleName(),
-                        "Write a 300 word story about a magic backpack."
+                        "Write a 50 word story about a magic backpack."
                 ))
                 .addSafetySetting(SafetySetting.of(
                         SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
@@ -61,8 +61,28 @@ public class GeminiTester {
                 .thenAccept(System.out::println)
                 .get(20, TimeUnit.SECONDS);
 
-        System.out.println("-----");
+        System.out.println("----- Generate content (streaming)");
         genAi.generateContentStream(model)
+                .forEach(System.out::println);
+
+
+        System.out.println("----- multi turn chat");
+        GenerativeModel chatModel = GenerativeModel.builder()
+                .modelName(ModelVariant.GEMINI_1_0_PRO)
+                .addContent(new Content.TextContent(
+                        Content.Role.USER.roleName(),
+                        "Write the first line of a story about a magic backpack."
+                ))
+                .addContent(new Content.TextContent(
+                        Content.Role.MODEL.roleName(),
+                        "In the bustling city of Meadow brook, lived a young girl named Sophie. She was a bright and curious soul with an imaginative mind."
+                ))
+                .addContent(new Content.TextContent(
+                        Content.Role.USER.roleName(),
+                        "Can you set it in a quiet village in 1600s France? Max 30 words"
+                ))
+                .build();
+        genAi.generateContentStream(chatModel)
                 .forEach(System.out::println);
     }
 }

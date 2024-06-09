@@ -8,8 +8,6 @@ import java.util.Locale;
  */
 public sealed interface Content {
 
-    // todo add builder (with support for role enum)
-
     /**
      * A part of a conversation that contains text.
      *
