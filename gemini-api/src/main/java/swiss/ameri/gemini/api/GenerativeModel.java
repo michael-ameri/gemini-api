@@ -36,6 +36,9 @@ public record GenerativeModel(
         private final List<Content> contents = new ArrayList<>();
         private final List<SafetySetting> safetySettings = new ArrayList<>();
 
+        private GenerativeModelBuilder() {
+        }
+
         /**
          * Set the model name.
          *

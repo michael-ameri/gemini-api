@@ -6,7 +6,7 @@
 
     <groupId>swiss.ameri</groupId>
     <artifactId>gemini</artifactId>
-    <version>1beta.0.0.1-SNAPSHOT</version>
+    <version>1beta.0.1.0</version>
     <packaging>pom</packaging>
 
     <licenses>
@@ -77,6 +77,15 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
+                        <configuration>
+                            <tags>
+                                <tag>
+                                    <name>apiNote</name>
+                                    <placement>a</placement>
+                                    <head>API Note</head>
+                                </tag>
+                            </tags>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

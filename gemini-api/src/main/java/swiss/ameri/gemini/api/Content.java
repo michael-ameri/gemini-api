@@ -77,13 +77,21 @@ public sealed interface Content {
     /**
      * A part of a conversation that contains text and media.
      *
-     * @param role belonging to this turn in the conversation. see {@link Role}
+     * @param role  belonging to this turn in the conversation. see {@link Role}
+     * @param text  of the conversation part
+     * @param media the medias
      */
     record TextAndMediaContent(
             String role,
             String text,
             List<MediaData> media
     ) implements Content {
+
+        /**
+         * Create a {@link TextAndMediaContentBuilder}.
+         *
+         * @return a new builder
+         */
         public static TextAndMediaContentBuilder builder() {
             return new TextAndMediaContentBuilder();
         }
@@ -168,9 +176,17 @@ public sealed interface Content {
     ) {
     }
 
-
+    /**
+     * The producer of the content. Mainly relevant for multi turn conversations.
+     */
     enum Role {
+        /**
+         * Content by user.
+         */
         USER,
+        /**
+         * Content by model.
+         */
         MODEL;
 
         private final String roleName;
@@ -179,6 +195,11 @@ public sealed interface Content {
             this.roleName = name().toLowerCase(Locale.ROOT);
         }
 
+        /**
+         * Role name for the api
+         *
+         * @return Role name for the api
+         */
         public String roleName() {
             return roleName;
         }
