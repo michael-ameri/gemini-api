@@ -4,7 +4,9 @@ import swiss.ameri.gemini.api.*;
 import swiss.ameri.gemini.gson.GsonJsonParser;
 import swiss.ameri.gemini.spi.JsonParser;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Example program to test the {@link GenAi} functionality.
@@ -29,15 +31,53 @@ public class GeminiTester {
                 apiKey,
                 parser
         );
-        genAi.listModels()
-                .forEach(System.out::println);
-        System.out.println("----- Get Model");
-        System.out.println(
-                genAi.getModel(ModelVariant.GEMINI_1_0_PRO)
-        );
 
+        // each method represents an example usage
+        listModels(genAi);
+        getModel(genAi);
+        generateContent(genAi);
+        generateContentStream(genAi);
+        multiChatTurn(genAi);
+    }
+
+    private static void multiChatTurn(GenAi genAi) {
+        System.out.println("----- multi turn chat");
+        GenerativeModel chatModel = GenerativeModel.builder()
+                .modelName(ModelVariant.GEMINI_1_0_PRO)
+                .addContent(new Content.TextContent(
+                        Content.Role.USER.roleName(),
+                        "Write the first line of a story about a magic backpack."
+                ))
+                .addContent(new Content.TextContent(
+                        Content.Role.MODEL.roleName(),
+                        "In the bustling city of Meadow brook, lived a young girl named Sophie. She was a bright and curious soul with an imaginative mind."
+                ))
+                .addContent(new Content.TextContent(
+                        Content.Role.USER.roleName(),
+                        "Can you set it in a quiet village in 1600s France? Max 30 words"
+                ))
+                .build();
+        genAi.generateContentStream(chatModel)
+                .forEach(System.out::println);
+    }
+
+    private static void generateContentStream(GenAi genAi) {
+        System.out.println("----- Generate content (streaming)");
+        var model = createStoryModel();
+        genAi.generateContentStream(model)
+                .forEach(System.out::println);
+    }
+
+    private static void generateContent(GenAi genAi) throws InterruptedException, ExecutionException, TimeoutException {
+        var model = createStoryModel();
         System.out.println("----- Generate content (blocking)");
-        var model = GenerativeModel.builder()
+        genAi.generateContent(model)
+                .thenAccept(System.out::println)
+                .get(20, TimeUnit.SECONDS);
+    }
+
+    private static GenerativeModel createStoryModel() {
+        return GenerativeModel.builder()
                 .modelName(ModelVariant.GEMINI_1_0_PRO)
                 .addContent(new Content.TextContent(
                         Content.Role.USER.roleName(),
@@ -57,32 +97,18 @@ public class GeminiTester {
                         null
                 ))
                 .build();
-        genAi.generateContent(model)
-                .thenAccept(System.out::println)
-                .get(20, TimeUnit.SECONDS);
+    }
 
-        System.out.println("----- Generate content (streaming)");
-        genAi.generateContentStream(model)
-                .forEach(System.out::println);
+    private static void getModel(GenAi genAi) {
+        System.out.println("----- Get Model");
+        System.out.println(
+                genAi.getModel(ModelVariant.GEMINI_1_0_PRO)
+        );
+    }
 
-
-        System.out.println("----- multi turn chat");
-        GenerativeModel chatModel = GenerativeModel.builder()
-                .modelName(ModelVariant.GEMINI_1_0_PRO)
-                .addContent(new Content.TextContent(
-                        Content.Role.USER.roleName(),
-                        "Write the first line of a story about a magic backpack."
-                ))
-                .addContent(new Content.TextContent(
-                        Content.Role.MODEL.roleName(),
-                        "In the bustling city of Meadow brook, lived a young girl named Sophie. She was a bright and curious soul with an imaginative mind."
-                ))
-                .addContent(new Content.TextContent(
-                        Content.Role.USER.roleName(),
-                        "Can you set it in a quiet village in 1600s France? Max 30 words"
-                ))
-                .build();
-        genAi.generateContentStream(chatModel)
+    private static void listModels(GenAi genAi) {
+        System.out.println("----- List models");
+        genAi.listModels()
                 .forEach(System.out::println);
     }
 }
