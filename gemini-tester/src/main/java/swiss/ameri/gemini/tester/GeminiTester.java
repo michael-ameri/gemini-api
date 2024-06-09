@@ -135,7 +135,7 @@ public class GeminiTester {
                 .join();
     }
 
-    public static String loadSconesImage() throws IOException {
+    private static String loadSconesImage() throws IOException {
         try (InputStream is = GeminiTester.class.getClassLoader().getResourceAsStream("scones.png")) {
             if (is == null) {
                 throw new IllegalStateException("Image not found! ");

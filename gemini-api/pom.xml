@@ -6,7 +6,7 @@
     <parent>
         <groupId>swiss.ameri</groupId>
         <artifactId>gemini</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1beta.0.0.0</version>
     </parent>
 
     <artifactId>gemini-api</artifactId>
