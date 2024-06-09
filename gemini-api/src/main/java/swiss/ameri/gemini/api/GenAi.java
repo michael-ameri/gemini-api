@@ -131,6 +131,41 @@ public class GenAi implements AutoCloseable {
                 .toList();
     }
 
+
+    /**
+     * Runs a model's tokenizer on input content and returns the token count.
+     * When using long prompts, it might be useful to count tokens before sending any content to the model.
+     *
+     * @param model to be analyzed
+     * @return the token count
+     */
+    public CompletableFuture<Long> countTokens(GenerativeModel model) {
+        return execute(() -> {
+            CompletableFuture<HttpResponse<String>> response = client.sendAsync(
+                    HttpRequest.newBuilder()
+                            .POST(HttpRequest.BodyPublishers.ofString(
+                                    jsonParser.toJson(new CountTokenRequest(convert(model)))
+                            ))
+                            .uri(URI.create("%s/%s:countTokens?key=%s".formatted(urlPrefix, model.modelName(), apiKey)))
+                            .build(),
+                    HttpResponse.BodyHandlers.ofString()
+            );
+            return response
+                    .thenApply(HttpResponse::body)
+                    .thenApply(body -> {
+                        try {
+                            var ctr = jsonParser.fromJson(body, CountTokenResponse.class);
+                            if (ctr.totalTokens() == null) {
+                                throw new RuntimeException("No token field in response");
+                            }
+                            return ctr.totalTokens();
+                        } catch (Exception e) {
+                            throw new RuntimeException("Unexpected body:\n" + body, e);
+                        }
+                    });
+        });
+    }
+
     /**
      * Generates a response from Gemini API based on the given {@code model}. The response is streamed in chunks of text. The
      * stream items are delivered as they arrive.
@@ -210,7 +245,7 @@ public class GenAi implements AutoCloseable {
     private static GenerateContentRequest convert(GenerativeModel model) {
         List<GenerationContent> generationContents = model.contents().stream()
                 .map(content -> {
-                    // todo change to "switch" over sealed type with jdk 21
+                    // change to "switch" over sealed type with jdk 21
                     if (content instanceof Content.TextContent textContent) {
                         return new GenerationContent(
                                 textContent.role(),
@@ -259,7 +294,7 @@ public class GenAi implements AutoCloseable {
                     }
                 })
                 .toList();
-        return new GenerateContentRequest(generationContents, model.safetySettings(), model.generationConfig());
+        return new GenerateContentRequest(model.modelName(), generationContents, model.safetySettings(), model.generationConfig());
     }
 
     private <T> T execute(ThrowingSupplier<T> supplier) {
@@ -344,6 +379,16 @@ public class GenAi implements AutoCloseable {
 
     }
 
+    private record CountTokenRequest(
+            GenerateContentRequest generateContentRequest
+    ) {
+    }
+
+    private record CountTokenResponse(
+            Long totalTokens
+    ) {
+    }
+
     private record GenerateContentResponse(
             UsageMetadata usageMetadata,
             List<ResponseCandidate> candidates
@@ -359,6 +404,9 @@ public class GenAi implements AutoCloseable {
     }
 
     private record GenerateContentRequest(
+            // for some reason, model is required for countToken, but not for the others.
+            // But it seems to be acceptable for the others, so we just add it to all for now
+            String model,
             List<GenerationContent> contents,
             List<SafetySetting> safetySettings,
             GenerationConfig generationConfig

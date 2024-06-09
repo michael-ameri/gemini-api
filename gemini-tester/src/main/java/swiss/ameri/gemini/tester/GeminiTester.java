@@ -34,6 +34,7 @@ public class GeminiTester {
             // each method represents an example usage
             listModels(genAi);
             getModel(genAi);
+            countTokens(genAi);
             generateContent(genAi);
             generateContentStream(genAi);
             multiChatTurn(genAi);
@@ -41,6 +42,14 @@ public class GeminiTester {
         }
 
 
+    }
+
+    private static void countTokens(GenAi genAi) {
+        System.out.println("----- count tokens");
+        var model = createStoryModel();
+        Long result = genAi.countTokens(model)
+                .join();
+        System.out.println("Tokens: " + result);
     }
 
     private static void multiChatTurn(GenAi genAi) {
