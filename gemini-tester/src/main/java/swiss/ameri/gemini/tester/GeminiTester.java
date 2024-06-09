@@ -7,6 +7,7 @@ import swiss.ameri.gemini.spi.JsonParser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Base64;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -39,8 +40,42 @@ public class GeminiTester {
             generateContentStream(genAi);
             multiChatTurn(genAi);
             textAndImage(genAi);
+            embedContents(genAi);
         }
 
+
+    }
+
+    private static void embedContents(GenAi genAi) {
+        System.out.println("----- embed contents");
+        var model = GenerativeModel.builder()
+                .modelName(ModelVariant.TEXT_EMBEDDING_004)
+                .addContent(Content.textContent(
+                        Content.Role.USER,
+                        "Write a 50 word story about a magic backpack."
+                ))
+                .addContent(Content.textContent(
+                        Content.Role.MODEL,
+                        "bla bla bla bla"
+                ))
+                .addSafetySetting(SafetySetting.of(
+                        SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                        SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
+                ))
+                .generationConfig(new GenerationConfig(
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
+                ))
+                .build();
+
+        List<GenAi.ContentEmbedding> embeddings = genAi.embedContents(model, null, null, null).join();
+        System.out.println("Embedding count: " + embeddings.size());
+        System.out.println("Values per embedding: " + embeddings.stream().map(GenAi.ContentEmbedding::values).map(List::size).toList());
 
     }
 

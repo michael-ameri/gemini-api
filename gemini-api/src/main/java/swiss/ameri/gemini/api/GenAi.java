@@ -242,8 +242,78 @@ public class GenAi implements AutoCloseable {
         });
     }
 
+    /**
+     * Embedding is a technique used to represent information as a list of floating point numbers in an array.
+     * With Gemini, you can represent text (words, sentences, and blocks of text) in a vectorized form,
+     * making it easier to compare and contrast embeddings.
+     * For example, two texts that share a similar subject or sentiment should have similar embeddings,
+     * which can be identified through mathematical comparison techniques such as cosine similarity.
+     *
+     * @param model                to use. Currently, only {@link ModelVariant#TEXT_EMBEDDING_004} is allowed.
+     * @param taskType             Optional. Optional task type for which the embeddings will be used. For possible values, see {@link TaskType}
+     * @param title                Optional. An optional title for the text. Only applicable when TaskType is RETRIEVAL_DOCUMENT.
+     *                             Note: Specifying a title for RETRIEVAL_DOCUMENT provides better quality embeddings for retrieval.
+     * @param outputDimensionality Optional. Optional reduced dimension for the output embedding.
+     *                             If set, excessive values in the output embedding are truncated from the end.
+     *                             Supported by newer models since 2024, and the earlier model (models/embedding-001) cannot specify this value.
+     * @return List of values
+     * @apiNote Only {@link swiss.ameri.gemini.api.Content.TextContent} are allowed.
+     */
+    public CompletableFuture<List<ContentEmbedding>> embedContents(
+            GenerativeModel model,
+            String taskType,
+            String title,
+            Long outputDimensionality
+    ) {
+        return execute(() -> {
+
+            var requests = convertGenerationContents(model)
+                    .stream()
+                    .map(generationContent -> new EmbedContentRequest(
+                            model.modelName(),
+                            generationContent,
+                            taskType,
+                            title,
+                            outputDimensionality
+                    ))
+                    .toList();
+
+            var request = new BatchEmbedContentRequest(requests);
+
+            CompletableFuture<HttpResponse<String>> response = client.sendAsync(
+                    HttpRequest.newBuilder()
+                            .POST(HttpRequest.BodyPublishers.ofString(
+                                    jsonParser.toJson(request)
+                            ))
+                            .uri(URI.create("%s/%s:batchEmbedContents?key=%s".formatted(urlPrefix, model.modelName(), apiKey)))
+                            .build(),
+                    HttpResponse.BodyHandlers.ofString()
+            );
+            return response
+                    .thenApply(HttpResponse::body)
+                    .thenApply(body -> {
+                        try {
+                            BatchEmbedContentResponse becr = jsonParser.fromJson(body, BatchEmbedContentResponse.class);
+                            if (becr.embeddings() == null) {
+                                throw new RuntimeException();
+                            }
+                            return becr
+                                    .embeddings();
+                        } catch (Exception e) {
+                            throw new RuntimeException("Unexpected body:\n" + body, e);
+                        }
+                    });
+
+        });
+    }
+
     private static GenerateContentRequest convert(GenerativeModel model) {
-        List<GenerationContent> generationContents = model.contents().stream()
+        List<GenerationContent> generationContents = convertGenerationContents(model);
+        return new GenerateContentRequest(model.modelName(), generationContents, model.safetySettings(), model.generationConfig());
+    }
+
+    private static List<GenerationContent> convertGenerationContents(GenerativeModel model) {
+        return model.contents().stream()
                 .map(content -> {
                     // change to "switch" over sealed type with jdk 21
                     if (content instanceof Content.TextContent textContent) {
@@ -294,7 +364,6 @@ public class GenAi implements AutoCloseable {
                     }
                 })
                 .toList();
-        return new GenerateContentRequest(model.modelName(), generationContents, model.safetySettings(), model.generationConfig());
     }
 
     private <T> T execute(ThrowingSupplier<T> supplier) {
@@ -377,6 +446,35 @@ public class GenAi implements AutoCloseable {
         ) {
         }
 
+    }
+
+    /**
+     * A list of floats representing an embedding.
+     *
+     * @param values A list of floats representing an embedding.
+     */
+    public record ContentEmbedding(
+            List<Double> values
+    ) {
+    }
+
+    private record BatchEmbedContentRequest(
+            List<EmbedContentRequest> requests
+    ) {
+    }
+
+    private record EmbedContentRequest(
+            String model,
+            GenerationContent content,
+            String taskType,
+            String title,
+            Long outputDimensionality
+    ) {
+    }
+
+    private record BatchEmbedContentResponse(
+            List<ContentEmbedding> embeddings
+    ) {
     }
 
     private record CountTokenRequest(
