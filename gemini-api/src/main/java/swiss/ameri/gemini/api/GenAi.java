@@ -74,7 +74,6 @@ public class GenAi {
      * @see #listModels()
      */
     public Model getModel(ModelVariant model) {
-        // todo return GenerativeModelBuilder. or add "toGenerativeModelBuilder" method. or add separate method...
         return getModel(model.variant());
     }
 
@@ -166,7 +165,6 @@ public class GenAi {
     }
 
     private static GenerateContentRequest convert(GenerativeModel model) {
-        // todo add safetySettings, generationConfig
         List<GenerationContent> generationContents = model.contents().stream()
                 .map(content -> {
                     // todo change to "switch" over sealed type with jdk 21

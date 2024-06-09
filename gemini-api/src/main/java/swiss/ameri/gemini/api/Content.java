@@ -72,7 +72,6 @@ public sealed interface Content {
             String role,
             MediaData media
     ) implements Content {
-        // todo test
     }
 
     /**
@@ -85,8 +84,6 @@ public sealed interface Content {
             String text,
             List<MediaData> media
     ) implements Content {
-        // todo test
-
         public static TextAndMediaContentBuilder builder() {
             return new TextAndMediaContentBuilder();
         }
