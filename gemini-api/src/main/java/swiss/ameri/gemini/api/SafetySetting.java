@@ -99,4 +99,37 @@ public record SafetySetting(
         BLOCK_NONE
     }
 
+    /**
+     * The probability that a piece of content is harmful.
+     * The classification system gives the probability of the content being unsafe.
+     * This does not indicate the severity of harm for a piece of content.
+     */
+    public enum HarmProbability {
+
+        /**
+         * Probability is unspecified.
+         */
+        HARM_PROBABILITY_UNSPECIFIED,
+
+        /**
+         * Content has a negligible chance of being unsafe.
+         */
+        NEGLIGIBLE,
+
+        /**
+         * Content has a low chance of being unsafe.
+         */
+        LOW,
+
+        /**
+         * Content has a medium chance of being unsafe.
+         */
+        MEDIUM,
+
+        /**
+         * Content has a high chance of being unsafe.
+         */
+        HIGH
+    }
+
 }
