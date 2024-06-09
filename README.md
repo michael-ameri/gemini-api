@@ -1,12 +1,16 @@
 # Introduction
-Java library for Gemini API. 
+
+Java library for Gemini API.
 See the documentation here: https://ai.google.dev/gemini-api
 
 # Getting started
+
 - Generate an API key: https://aistudio.google.com/app/apikey
 
 # Usage
+
 ## Dependency
+
 Add the `gemini-api` dependency. Maven example (replace ${gemini.version} with the latest version):
 
         <dependency>
@@ -16,8 +20,11 @@ Add the `gemini-api` dependency. Maven example (replace ${gemini.version} with t
         </dependency>
 
 ## JsonParser
-In order for this library to stay free of dependencies, the user must provide an implementation of the `swiss.ameri.gemini.spi.JsonParser` interface.
-Alternatively, an example Gson implementation can be used with the following dependency (which includes a Gson dependency)
+
+In order for this library to stay free of dependencies, the user must provide an implementation of
+the `swiss.ameri.gemini.spi.JsonParser` interface.
+Alternatively, an example Gson implementation can be used with the following dependency (which includes a Gson
+dependency)
 
         <dependency>
             <groupId>swiss.ameri</groupId>
@@ -27,7 +34,8 @@ Alternatively, an example Gson implementation can be used with the following dep
 
 ## Example code
 
-See gemini-tester for some examples.
+See [gemini-tester](https://github.com/michael-ameri/gemini-api/blob/1beta.0.1.0/gemini-tester/src/main/java/swiss/ameri/gemini/tester/GeminiTester.java)
+for some examples.
 
     JsonParser parser = new GsonJsonParser(); // or some custom implementation
     String apiKey = ...;
@@ -58,17 +66,21 @@ See gemini-tester for some examples.
                 .forEach(System.out::println)
 
 # Versioning
-The library versioning follows the scheme: 
+
+The library versioning follows the scheme:
 `<gemini-api-version>.<major>.<minor>.<patch>`
 
 Example:
 `1beta.0.0.1`
 
 # Requirements
+
 - \>= Java 17
 
 # Modules
+
 The project is composed of the following maven modules, which are deployed to maven central.
+
 ## gemini-api
 
         <dependency>
@@ -87,7 +99,7 @@ Main module to be used. Must not contain any dependencies to other modules.
             <version>${gemini.version}</version>
         </dependency>
 
-Provides an example implementation of the `swiss.ameri.gemini.spi.JsonParser` class using `Gson`. 
+Provides an example implementation of the `swiss.ameri.gemini.spi.JsonParser` class using `Gson`.
 Contains a maven dependency to `Gson`
 
 ## gemini-tester
