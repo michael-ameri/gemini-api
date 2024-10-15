@@ -172,7 +172,7 @@ public class GeminiTester {
     private static void textAndImage(GenAi genAi) throws IOException {
         System.out.println("----- text and image");
         var model = GenerativeModel.builder()
-                .modelName(ModelVariant.GEMINI_1_0_PRO_VISION)
+                .modelName(ModelVariant.GEMINI_1_5_FLASH)
                 .addContent(
                         Content.textAndMediaContentBuilder()
                                 .role(Content.Role.USER)

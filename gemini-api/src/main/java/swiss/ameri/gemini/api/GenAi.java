@@ -215,6 +215,8 @@ public class GenAi implements AutoCloseable {
                             var gcr = jsonParser.fromJson(line.substring(STREAM_LINE_PREFIX_LENGTH), GenerateContentResponse.class);
                             // each element can just replace the previous one
                             this.responseById.put(uuid, gcr);
+                            // todo catch safety error
+                            //if ("SAFETY".equals(gcr.candidates().get(0).finishReason())) {
                             return new GeneratedContent(uuid, gcr.candidates().get(0).content().parts().get(0).text());
                         } catch (Exception e) {
                             throw new RuntimeException("Unexpected line:\n" + line, e);
@@ -326,7 +328,18 @@ public class GenAi implements AutoCloseable {
 
     private static GenerateContentRequest convert(GenerativeModel model) {
         List<GenerationContent> generationContents = convertGenerationContents(model);
-        return new GenerateContentRequest(model.modelName(), generationContents, model.safetySettings(), model.generationConfig());
+        return new GenerateContentRequest(
+                model.modelName(),
+                generationContents,
+                model.safetySettings(),
+                model.generationConfig(),
+                model.systemInstruction().isEmpty() ? null :
+                        new SystemInstruction(
+                                model.systemInstruction().stream()
+                                        .map(SystemInstructionPart::new)
+                                        .toList()
+                        )
+        );
     }
 
     private static List<GenerationContent> convertGenerationContents(GenerativeModel model) {
@@ -578,7 +591,18 @@ public class GenAi implements AutoCloseable {
             String model,
             List<GenerationContent> contents,
             List<SafetySetting> safetySettings,
-            GenerationConfig generationConfig
+            GenerationConfig generationConfig,
+            SystemInstruction systemInstruction
+    ) {
+    }
+
+    private record SystemInstruction(
+            List<SystemInstructionPart> parts
+    ) {
+    }
+
+    private record SystemInstructionPart(
+            String text
     ) {
     }
 

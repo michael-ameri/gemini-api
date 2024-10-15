@@ -6,16 +6,18 @@ import java.util.List;
 /**
  * Contains all the information needed for Gemini API to generate new content.
  *
- * @param modelName        to be used. see {@link ModelVariant}. Must start with "models/"
- * @param contents         given as input to Gemini API
- * @param safetySettings   optional, to adjust safety settings
- * @param generationConfig optional, to configure the prompt
+ * @param modelName         to be used. see {@link ModelVariant}. Must start with "models/"
+ * @param contents          given as input to Gemini API
+ * @param safetySettings    optional, to adjust safety settings
+ * @param generationConfig  optional, to configure the prompt
+ * @param systemInstruction optional, system instruction
  */
 public record GenerativeModel(
         String modelName,
         List<Content> contents,
         List<SafetySetting> safetySettings,
-        GenerationConfig generationConfig
+        GenerationConfig generationConfig,
+        List<String> systemInstruction
 ) {
 
     /**
@@ -35,6 +37,7 @@ public record GenerativeModel(
         private GenerationConfig generationConfig;
         private final List<Content> contents = new ArrayList<>();
         private final List<SafetySetting> safetySettings = new ArrayList<>();
+        private final List<String> systemInstructions = new ArrayList<>();
 
         private GenerativeModelBuilder() {
         }
@@ -72,6 +75,17 @@ public record GenerativeModel(
         }
 
         /**
+         * Add system instruction
+         *
+         * @param systemInstruction to be added
+         * @return this
+         */
+        public GenerativeModelBuilder addSystemInstruction(String systemInstruction) {
+            this.systemInstructions.add(systemInstruction);
+            return this;
+        }
+
+        /**
          * Add safety setting
          *
          * @param safetySetting to be added
@@ -99,7 +113,7 @@ public record GenerativeModel(
          * @return a completed (not necessarily validated) {@link GenerativeModel}
          */
         public GenerativeModel build() {
-            return new GenerativeModel(modelName, contents, safetySettings, generationConfig);
+            return new GenerativeModel(modelName, contents, safetySettings, generationConfig, systemInstructions);
         }
     }
 

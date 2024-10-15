@@ -15,17 +15,21 @@ public enum ModelVariant {
      */
     GEMINI_1_5_FLASH("gemini-1.5-flash"),
     /**
+     * High volume and lower intelligence tasks.
+     */
+    GEMINI_1_5_FLASH_8B("gemini-1.5-flash-8b"),
+    /**
      * Natural language tasks, multi-turn text and code chat, and code generation.
      */
     GEMINI_1_0_PRO("gemini-1.0-pro"),
     /**
-     * Visual-related tasks, like generating image descriptions or identifying objects in images.
-     */
-    GEMINI_1_0_PRO_VISION("gemini-pro-vision"),
-    /**
      * Measuring the relatedness of text strings.
      */
     TEXT_EMBEDDING_004("text-embedding-004"),
+    /**
+     * Providing source-grounded answers to questions.
+     */
+    AQA("aqa"),
     ;
 
     private final String variant;

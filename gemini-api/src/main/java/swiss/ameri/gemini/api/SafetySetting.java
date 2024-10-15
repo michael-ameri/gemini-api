@@ -1,5 +1,10 @@
 package swiss.ameri.gemini.api;
 
+import java.util.Arrays;
+import java.util.List;
+
+import static swiss.ameri.gemini.api.SafetySetting.HarmCategoryType.*;
+
 /**
  * Safety settings according to <a href="https://ai.google.dev/api/rest/v1beta/SafetySetting#harmblockthreshold">SafetySetting</a>.
  *
@@ -29,55 +34,81 @@ public record SafetySetting(
         );
     }
 
+    public enum HarmCategoryType {
+        GEMINI,
+        PALM,
+        UNKNOWN
+    }
+
     /**
      * According to <a href="https://ai.google.dev/api/rest/v1beta/HarmCategory">HarmCategory</a>.
-     * Currently, only the first 4 seem to be recognized as input.
+     * See {@link #harmCategoryType} for which can be used as input to a model.
      */
     public enum HarmCategory {
+
         /**
          * Harasment content.
          */
-        HARM_CATEGORY_HARASSMENT,
+        HARM_CATEGORY_HARASSMENT(GEMINI),
         /**
          * Hate speech and content.
          */
-        HARM_CATEGORY_HATE_SPEECH,
+        HARM_CATEGORY_HATE_SPEECH(GEMINI),
         /**
          * Sexually explicit content.
          */
-        HARM_CATEGORY_SEXUALLY_EXPLICIT,
+        HARM_CATEGORY_SEXUALLY_EXPLICIT(GEMINI),
         /**
          * Dangerous content.
          */
-        HARM_CATEGORY_DANGEROUS_CONTENT,
+        HARM_CATEGORY_DANGEROUS_CONTENT(GEMINI),
+        /**
+         * Content that may be used to harm civic integrity.
+         */
+        HARM_CATEGORY_CIVIC_INTEGRITY(GEMINI),
         /**
          * Category is unspecified.
          */
-        HARM_CATEGORY_UNSPECIFIED,
+        HARM_CATEGORY_UNSPECIFIED(UNKNOWN),
         /**
          * Negative or harmful comments targeting identity and/or protected attribute.
          */
-        HARM_CATEGORY_DEROGATORY,
+        HARM_CATEGORY_DEROGATORY(PALM),
         /**
          * Content that is rude, disrespectful, or profane.
          */
-        HARM_CATEGORY_TOXICITY,
+        HARM_CATEGORY_TOXICITY(PALM),
         /**
          * Describes scenarios depicting violence against an individual or group, or general descriptions of gore.
          */
-        HARM_CATEGORY_VIOLENCE,
+        HARM_CATEGORY_VIOLENCE(PALM),
         /**
          * Contains references to sexual acts or other lewd content.
          */
-        HARM_CATEGORY_SEXUAL,
+        HARM_CATEGORY_SEXUAL(PALM),
         /**
          * Promotes unchecked medical advice.
          */
-        HARM_CATEGORY_MEDICAL,
+        HARM_CATEGORY_MEDICAL(PALM),
         /**
          * Dangerous content that promotes, facilitates, or encourages harmful acts.
          */
-        HARM_CATEGORY_DANGEROUS,
+        HARM_CATEGORY_DANGEROUS(PALM);
+        private final HarmCategoryType harmCategoryType;
+
+        HarmCategory(HarmCategoryType harmCategoryType) {
+            this.harmCategoryType = harmCategoryType;
+        }
+
+        public HarmCategoryType harmCategoryType() {
+            return harmCategoryType;
+        }
+
+        public static List<HarmCategory> harmCategoriesFor(HarmCategoryType type) {
+            return Arrays.stream(values())
+                    .filter(category -> category.harmCategoryType == type)
+                    .toList();
+        }
     }
 
     /**
