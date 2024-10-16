@@ -1,5 +1,6 @@
 package swiss.ameri.gemini.api;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,5 +43,68 @@ public record GenerationConfig(
         Integer topK
 ) {
 
+    /**
+     * Builder for {@link GenerationConfig}.
+     */
+    public static GenerationConfigBuilder builder() {
+        return new GenerationConfigBuilder();
+    }
+
+    public static class GenerationConfigBuilder {
+        private final List<String> stopSequences = new ArrayList<>();
+        private String responseMimeType;
+        private String responseSchema;
+        private Integer maxOutputTokens;
+        private Double temperature;
+        private Double topP;
+        private Integer topK;
+
+        public GenerationConfigBuilder addStopSequence(String stopSequence) {
+            this.stopSequences.add(stopSequence);
+            return this;
+        }
+
+        public GenerationConfigBuilder responseMimeType(String responseMimeType) {
+            this.responseMimeType = responseMimeType;
+            return this;
+        }
+
+        public GenerationConfigBuilder responseSchema(String responseSchema) {
+            this.responseSchema = responseSchema;
+            return this;
+        }
+
+        public GenerationConfigBuilder maxOutputTokens(Integer maxOutputTokens) {
+            this.maxOutputTokens = maxOutputTokens;
+            return this;
+        }
+
+        public GenerationConfigBuilder temperature(Double temperature) {
+            this.temperature = temperature;
+            return this;
+        }
+
+        public GenerationConfigBuilder topP(Double topP) {
+            this.topP = topP;
+            return this;
+        }
+
+        public GenerationConfigBuilder topK(Integer topK) {
+            this.topK = topK;
+            return this;
+        }
+
+        public GenerationConfig build() {
+            return new GenerationConfig(
+                    stopSequences.isEmpty() ? null : stopSequences,
+                    responseMimeType,
+                    responseSchema,
+                    maxOutputTokens,
+                    temperature,
+                    topP,
+                    topK
+            );
+        }
+    }
 
 }
