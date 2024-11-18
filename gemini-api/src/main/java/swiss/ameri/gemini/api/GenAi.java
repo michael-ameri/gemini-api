@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
@@ -173,11 +174,11 @@ public class GenAi implements AutoCloseable {
                         try {
                             var ctr = jsonParser.fromJson(body, CountTokenResponse.class);
                             if (ctr.totalTokens() == null) {
-                                throw new RuntimeException("No token field in response");
+                                throw new GeminiException("No token field in response");
                             }
                             return ctr.totalTokens();
                         } catch (Exception e) {
-                            throw new RuntimeException("Unexpected body:\n" + body, e);
+                            throw new GeminiException("Unexpected body:\n" + body, e);
                         }
                     });
         });
@@ -208,6 +209,27 @@ public class GenAi implements AutoCloseable {
                     request,
                     HttpResponse.BodyHandlers.ofLines()
             );
+            //  e.g. Response code: 503 (Service Unavailable); Time: 5813ms (5 s 813 ms)
+            //
+            //{
+            //  "error": {
+            //    "code": 503,
+            //    "message": "The model is overloaded. Please try again later.",
+            //    "status": "UNAVAILABLE"
+            //  }
+            //}
+
+            if (response.statusCode() != 200) {
+                // in case of an error, we don't stream, but block and give the whole response, because
+                // we don't want to parse it and potentially cause more errors
+                String error = response.body()
+                        .collect(Collectors.joining("\n"));
+                throw new GeminiException(
+                        "Unexpected stream response:\n%s".formatted(error),
+                        response.statusCode()
+                );
+            }
+
             return response.body()
                     .filter(l -> l.length() > STREAM_LINE_PREFIX_LENGTH)
                     .map(line -> parse(line.substring(STREAM_LINE_PREFIX_LENGTH), uuid));
@@ -295,12 +317,12 @@ public class GenAi implements AutoCloseable {
                         try {
                             BatchEmbedContentResponse becr = jsonParser.fromJson(body, BatchEmbedContentResponse.class);
                             if (becr.embeddings() == null) {
-                                throw new RuntimeException();
+                                throw new GeminiException("No embeddings field in response:\n" + body);
                             }
                             return becr
                                     .embeddings();
                         } catch (Exception e) {
-                            throw new RuntimeException("Unexpected body:\n" + body, e);
+                            throw new GeminiException("Unexpected body:\n" + body, e);
                         }
                     });
 
@@ -371,7 +393,7 @@ public class GenAi implements AutoCloseable {
                                 ).toList()
                         );
                     } else {
-                        throw new RuntimeException("Unexpected content:\n" + content);
+                        throw new GeminiException("Unexpected content:\n" + content);
                     }
                 })
                 .toList();
@@ -384,7 +406,7 @@ public class GenAi implements AutoCloseable {
             throw new UncheckedIOException(e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new GeminiException("Thread was interrupted.", e);
         }
     }
 
@@ -537,7 +559,7 @@ public class GenAi implements AutoCloseable {
             }
             return new GeneratedContent(uuid, candidate.content().parts().get(0).text(), candidate.finishReason());
         } catch (Exception e) {
-            throw new RuntimeException("Unexpected body:\n" + body, e);
+            throw new GeminiException("Unexpected body:\n" + body, e);
         }
     }
 
