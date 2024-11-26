@@ -6,7 +6,7 @@
 
     <groupId>swiss.ameri</groupId>
     <artifactId>gemini</artifactId>
-    <version>1beta.0.2.4-SNAPSHOT</version>
+    <version>1beta.0.2.4</version>
     <packaging>pom</packaging>
 
     <licenses>
