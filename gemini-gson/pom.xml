@@ -20,6 +20,7 @@
 
         <gemini.version>${project.version}</gemini.version>
         <gson.version>2.11.0</gson.version>
+        <module-name>swiss.ameri.gemini.gson</module-name>
 
     </properties>
 

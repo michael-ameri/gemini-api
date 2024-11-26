@@ -17,6 +17,7 @@
 
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
+        <module-name>swiss.ameri.gemini.api</module-name>
     </properties>
 
 </project>
