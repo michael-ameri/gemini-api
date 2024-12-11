@@ -19,5 +19,13 @@
         <maven.compiler.release>17</maven.compiler.release>
         <module-name>swiss.ameri.gemini.api</module-name>
     </properties>
+    <dependencies>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.11.0</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
 </project>
