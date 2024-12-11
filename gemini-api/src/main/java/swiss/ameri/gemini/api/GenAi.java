@@ -1,5 +1,7 @@
 package swiss.ameri.gemini.api;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import swiss.ameri.gemini.spi.JsonParser;
 
 import java.io.IOException;
@@ -247,22 +249,52 @@ public class GenAi implements AutoCloseable {
      * @see #generateContentStream(GenerativeModel) to stream the response in chunks, instead of receiving all at once
      */
     public CompletableFuture<GeneratedContent> generateContent(GenerativeModel model) {
-        return execute(() -> {
+        return (CompletableFuture) this.execute(() -> {
             UUID uuid = UUID.randomUUID();
-            CompletableFuture<HttpResponse<String>> response = client.sendAsync(
+
+            // Preprocess the model to ensure responseSchema is a JSON object
+            String preparedJson = preprocessModel(model);
+
+            // Send the request
+            CompletableFuture<HttpResponse<String>> response = this.client.sendAsync(
                     HttpRequest.newBuilder()
-                            .POST(HttpRequest.BodyPublishers.ofString(
-                                    jsonParser.toJson(convert(model))
-                            ))
-                            .uri(URI.create("%s/%s:generateContent?key=%s".formatted(urlPrefix, model.modelName(), apiKey)))
+                            .POST(HttpRequest.BodyPublishers.ofString(preparedJson))
+                            .uri(URI.create("%s/%s:generateContent?key=%s".formatted(
+                                    "https://generativelanguage.googleapis.com/v1beta",
+                                    model.modelName(),
+                                    this.apiKey)))
                             .build(),
                     HttpResponse.BodyHandlers.ofString()
             );
+
+            // Handle the response
             return response
                     .thenApply(HttpResponse::body)
-                    .thenApply(body -> parse(body, uuid));
+                    .thenApply((body) -> this.parse(body, uuid));
         });
     }
+
+    // Helper method to preprocess the model
+    private String preprocessModel(GenerativeModel model) {
+        // Convert the model to a JSON tree
+        JsonObject modelJson = new Gson().toJsonTree(model).getAsJsonObject();
+
+        // Ensure `responseSchema` is a JSON object
+        JsonObject generationConfig = modelJson.getAsJsonObject("generationConfig");
+        if (generationConfig != null) {
+            String responseSchemaString = generationConfig.get("responseSchema").getAsString();
+
+            // Parse the responseSchema string into a JSON object
+            JsonObject responseSchemaJson = new Gson().fromJson(responseSchemaString, JsonObject.class);
+
+            // Replace the string with the parsed JSON object
+            generationConfig.add("responseSchema", responseSchemaJson);
+        }
+
+        // Convert back to JSON string
+        return new Gson().toJson(modelJson);
+    }
+
 
     /**
      * Embedding is a technique used to represent information as a list of floating point numbers in an array.
