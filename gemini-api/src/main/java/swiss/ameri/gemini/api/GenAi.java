@@ -8,10 +8,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -145,7 +142,10 @@ public class GenAi implements AutoCloseable {
             return emptyList();
         }
         return response.candidates().stream()
-                .flatMap(candidate -> candidate.safetyRatings().stream())
+                // when streaming, we sometimes don't get a safety rating... (with 1.5 pro)
+                .map(ResponseCandidate::safetyRatings)
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
                 .toList();
     }
 

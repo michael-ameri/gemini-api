@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -38,6 +39,8 @@ public class GeminiTester {
             countTokens(genAi);
             generateContent(genAi);
             generateContentStream(genAi);
+            generateWithResponseSchema(genAi);
+            generateContentStreamWithResponseSchema(genAi);
             multiChatTurn(genAi);
             textAndImage(genAi);
             embedContents(genAi);
@@ -90,7 +93,7 @@ public class GeminiTester {
     private static void multiChatTurn(GenAi genAi) {
         System.out.println("----- multi turn chat");
         GenerativeModel chatModel = GenerativeModel.builder()
-                .modelName(ModelVariant.GEMINI_1_0_PRO)
+                .modelName(ModelVariant.GEMINI_1_5_PRO)
                 .addContent(new Content.TextContent(
                         Content.Role.USER.roleName(),
                         "Write the first line of a story about a magic backpack."
@@ -133,9 +136,68 @@ public class GeminiTester {
                 .get(20, TimeUnit.SECONDS);
     }
 
+
+    private static void generateContentStreamWithResponseSchema(GenAi genAi) {
+        System.out.println("----- Generate content (streaming) with response schema -- with usage meta data");
+        var model = createResponseSchemaModel();
+        genAi.generateContentStream(model)
+                .forEach(x -> {
+                    System.out.println(x);
+                    // note that the usage metadata is updated as it arrives
+                    System.out.println(genAi.usageMetadata(x.id()));
+                    System.out.println(genAi.safetyRatings(x.id()));
+                });
+    }
+
+    private static void generateWithResponseSchema(GenAi genAi) throws InterruptedException, ExecutionException, TimeoutException {
+        var model = createResponseSchemaModel();
+        System.out.println("----- Generate with response schema (blocking)");
+        genAi.generateContent(model)
+                .thenAccept(gcr -> {
+                    System.out.println(gcr);
+                    System.out.println("----- Generate with response schema (blocking) usage meta data & safety ratings");
+                    System.out.println(genAi.usageMetadata(gcr.id()));
+                    System.out.println(genAi.safetyRatings(gcr.id()).stream().map(GenAi.SafetyRating::toTypedSafetyRating).toList());
+                })
+                .get(20, TimeUnit.SECONDS);
+    }
+
+    private static GenerativeModel createResponseSchemaModel() {
+        return GenerativeModel.builder()
+                .modelName(ModelVariant.GEMINI_1_5_FLASH)
+                .addContent(Content.textContent(
+                        Content.Role.USER,
+                        "List 3 popular cookie recipes."
+                ))
+                .addSafetySetting(SafetySetting.of(
+                        SafetySetting.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                        SafetySetting.HarmBlockThreshold.BLOCK_ONLY_HIGH
+                ))
+                .generationConfig(new GenerationConfig(
+                        null,
+                        "application/json",
+                        Schema.builder()
+                                .type(Schema.Type.ARRAY)
+                                .items(Schema.builder()
+                                        .type(Schema.Type.OBJECT)
+                                        .properties(Map.of(
+                                                "recipe_name", Schema.builder()
+                                                        .type(Schema.Type.STRING)
+                                                        .build()
+                                        ))
+                                        .build())
+                                .build(),
+                        null,
+                        null,
+                        null,
+                        null
+                ))
+                .build();
+    }
+
     private static GenerativeModel createStoryModel() {
         return GenerativeModel.builder()
-                .modelName(ModelVariant.GEMINI_1_0_PRO)
+                .modelName(ModelVariant.GEMINI_1_5_PRO)
                 .addContent(Content.textContent(
                         Content.Role.USER,
                         "Write a 50 word story about a magic backpack."
@@ -159,7 +221,7 @@ public class GeminiTester {
     private static void getModel(GenAi genAi) {
         System.out.println("----- Get Model");
         System.out.println(
-                genAi.getModel(ModelVariant.GEMINI_1_0_PRO)
+                genAi.getModel(ModelVariant.GEMINI_1_5_PRO)
         );
     }
 

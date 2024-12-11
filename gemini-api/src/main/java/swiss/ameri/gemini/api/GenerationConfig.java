@@ -36,7 +36,7 @@ import java.util.List;
 public record GenerationConfig(
         List<String> stopSequences,
         String responseMimeType,
-        String responseSchema,
+        Schema responseSchema,
         Integer maxOutputTokens,
         Double temperature,
         Double topP,
@@ -53,7 +53,7 @@ public record GenerationConfig(
     public static class GenerationConfigBuilder {
         private final List<String> stopSequences = new ArrayList<>();
         private String responseMimeType;
-        private String responseSchema;
+        private Schema responseSchema;
         private Integer maxOutputTokens;
         private Double temperature;
         private Double topP;
@@ -69,7 +69,7 @@ public record GenerationConfig(
             return this;
         }
 
-        public GenerationConfigBuilder responseSchema(String responseSchema) {
+        public GenerationConfigBuilder responseSchema(Schema responseSchema) {
             this.responseSchema = responseSchema;
             return this;
         }
