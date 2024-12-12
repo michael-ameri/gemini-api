@@ -197,7 +197,7 @@ public class GeminiTester {
 
     private static GenerativeModel createStoryModel() {
         return GenerativeModel.builder()
-                .modelName(ModelVariant.GEMINI_1_5_PRO)
+                .modelName(ModelVariant.GEMINI_2_0_FLASH_EXP)
                 .addContent(Content.textContent(
                         Content.Role.USER,
                         "Write a 50 word story about a magic backpack."
