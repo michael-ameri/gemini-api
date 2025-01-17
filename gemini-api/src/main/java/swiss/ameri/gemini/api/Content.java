@@ -10,6 +10,41 @@ import java.util.Locale;
 public sealed interface Content {
 
     /**
+     * Role belonging to this turn in the conversation.
+     *
+     * @return string value of a {@link Role}
+     */
+    String role();
+
+    /**
+     * Create a {@link FunctionCallContent}.
+     *
+     * @param role         belonging to this turn in the conversation.
+     * @param functionCall by the role
+     * @return a {@link FunctionCallContent}
+     */
+    static FunctionCallContent functionCallContent(
+            Role role,
+            FunctionCall functionCall
+    ) {
+        return new FunctionCallContent(role == null ? null : role.roleName(), functionCall);
+    }
+
+    /**
+     * Create a {@link FunctionCallContent}.
+     *
+     * @param role             belonging to this turn in the conversation.
+     * @param functionResponse by the role
+     * @return a {@link FunctionResponseContent}
+     */
+    static FunctionResponseContent functionResponseContent(
+            Role role,
+            FunctionResponse functionResponse
+    ) {
+        return new FunctionResponseContent(role == null ? null : role.roleName(), functionResponse);
+    }
+
+    /**
      * Create a {@link TextContent}.
      *
      * @param role belonging to this turn in the conversation.
@@ -49,6 +84,32 @@ public sealed interface Content {
         return TextAndMediaContent.builder();
     }
 
+    /**
+     * A predicted FunctionCall returned from the model that contains a string representing the FunctionDeclaration.name
+     * with the arguments and their values.
+     *
+     * @param role         belonging to this turn in the conversation. see {@link Role}
+     * @param functionCall returned form the model
+     */
+    record FunctionCallContent(
+            String role,
+            FunctionCall functionCall
+    ) implements Content {
+    }
+
+    /**
+     * The result output from a FunctionCall that contains a string representing the FunctionDeclaration.name and
+     * a structured JSON object containing any output from the function is used as context to the model.
+     * This should contain the result of aFunctionCall made based on model prediction.
+     *
+     * @param role             belonging to this turn in the conversation. see {@link Role}
+     * @param functionResponse response to a function call
+     */
+    record FunctionResponseContent(
+            String role,
+            FunctionResponse functionResponse
+    ) implements Content {
+    }
 
     /**
      * A part of a conversation that contains text.

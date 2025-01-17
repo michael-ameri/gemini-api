@@ -8,7 +8,13 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -331,6 +337,10 @@ public class GenAi implements AutoCloseable {
 
     private static GenerateContentRequest convert(GenerativeModel model) {
         List<GenerationContent> generationContents = convertGenerationContents(model);
+        List<Tool> tools = new ArrayList<>();
+        if (!model.functionDeclarations().isEmpty()) {
+            tools.add(new Tool(model.functionDeclarations()));
+        }
         return new GenerateContentRequest(
                 model.modelName(),
                 generationContents,
@@ -341,7 +351,9 @@ public class GenAi implements AutoCloseable {
                                 model.systemInstruction().stream()
                                         .map(SystemInstructionPart::new)
                                         .toList()
-                        )
+                        ),
+                tools.isEmpty() ? null :
+                        List.of(new Tool(model.functionDeclarations()))
         );
     }
 
@@ -355,6 +367,8 @@ public class GenAi implements AutoCloseable {
                                 List.of(
                                         new GenerationPart(
                                                 textContent.text(),
+                                                null,
+                                                null,
                                                 null
                                         )
                                 )
@@ -368,7 +382,9 @@ public class GenAi implements AutoCloseable {
                                                 new InlineData(
                                                         imageContent.media().mimeType(),
                                                         imageContent.media().mediaBase64()
-                                                )
+                                                ),
+                                                null,
+                                                null
                                         )
                                 )
                         );
@@ -379,6 +395,8 @@ public class GenAi implements AutoCloseable {
                                         Stream.of(
                                                 new GenerationPart(
                                                         textAndImagesContent.text(),
+                                                        null,
+                                                        null,
                                                         null
                                                 )
                                         ),
@@ -388,9 +406,35 @@ public class GenAi implements AutoCloseable {
                                                         new InlineData(
                                                                 imageData.mimeType(),
                                                                 imageData.mediaBase64()
-                                                        )
+                                                        ),
+                                                        null,
+                                                        null
                                                 ))
                                 ).toList()
+                        );
+                    } else if (content instanceof Content.FunctionCallContent functionCallContent) {
+                        return new GenerationContent(
+                                functionCallContent.role(),
+                                List.of(
+                                        new GenerationPart(
+                                                null,
+                                                null,
+                                                functionCallContent.functionCall(),
+                                                null
+                                        )
+                                )
+                        );
+                    } else if (content instanceof Content.FunctionResponseContent functionResponseContent) {
+                        return new GenerationContent(
+                                functionResponseContent.role(),
+                                List.of(
+                                        new GenerationPart(
+                                                null,
+                                                null,
+                                                null,
+                                                functionResponseContent.functionResponse()
+                                        )
+                                )
                         );
                     } else {
                         throw new GeminiException("Unexpected content:\n" + content);
@@ -423,11 +467,13 @@ public class GenAi implements AutoCloseable {
      *
      * @param id           the id of the request, for subsequent queries regarding metadata of the query
      * @param text         of the generated content
+     * @param functionCall Optional. if the model wants to call a function
      * @param finishReason the reason generation was finished, according to <a href="https://ai.google.dev/api/generate-content#FinishReason">FinishReason</a>
      */
     public record GeneratedContent(
             UUID id,
             String text,
+            FunctionCall functionCall,
             String finishReason
     ) {
     }
@@ -555,9 +601,10 @@ public class GenAi implements AutoCloseable {
             // we assume we always get a candidate. Otherwise, there is probably something wrong with the input
             var candidate = gcr.candidates().get(0);
             if (candidate.content() == null) {
-                return new GeneratedContent(uuid, "", candidate.finishReason());
+                return new GeneratedContent(uuid, "", null, candidate.finishReason());
             }
-            return new GeneratedContent(uuid, candidate.content().parts().get(0).text(), candidate.finishReason());
+            GenerationPart firstPart = candidate.content().parts().get(0);
+            return new GeneratedContent(uuid, firstPart.text(), firstPart.functionCall(), candidate.finishReason());
         } catch (Exception e) {
             throw new GeminiException("Unexpected body:\n" + body, e);
         }
@@ -613,7 +660,17 @@ public class GenAi implements AutoCloseable {
             List<GenerationContent> contents,
             List<SafetySetting> safetySettings,
             GenerationConfig generationConfig,
-            SystemInstruction systemInstruction
+            SystemInstruction systemInstruction,
+            List<Tool> tools
+    ) {
+    }
+
+    /**
+     * See <a href="https://ai.google.dev/api/caching#Tool">Tool</a>
+     */
+    private record Tool(
+            List<FunctionDeclaration> functionDeclarations
+            // still missing CodeExecution and GoogleSearchRetrieval
     ) {
     }
 
@@ -633,10 +690,15 @@ public class GenAi implements AutoCloseable {
     ) {
     }
 
+    /**
+     * See <a #href="https://ai.google.dev/api/caching#Part">Part</a>
+     */
     private record GenerationPart(
-            // contains one or the other
+            // contains one of these
             String text,
-            InlineData inline_data
+            InlineData inline_data,
+            FunctionCall functionCall,
+            FunctionResponse functionResponse
     ) {
     }
 

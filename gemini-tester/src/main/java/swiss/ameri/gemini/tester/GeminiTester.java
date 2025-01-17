@@ -1,6 +1,15 @@
 package swiss.ameri.gemini.tester;
 
-import swiss.ameri.gemini.api.*;
+import swiss.ameri.gemini.api.Content;
+import swiss.ameri.gemini.api.FunctionCall;
+import swiss.ameri.gemini.api.FunctionDeclaration;
+import swiss.ameri.gemini.api.FunctionResponse;
+import swiss.ameri.gemini.api.GenAi;
+import swiss.ameri.gemini.api.GenerationConfig;
+import swiss.ameri.gemini.api.GenerativeModel;
+import swiss.ameri.gemini.api.ModelVariant;
+import swiss.ameri.gemini.api.SafetySetting;
+import swiss.ameri.gemini.api.Schema;
 import swiss.ameri.gemini.gson.GsonJsonParser;
 import swiss.ameri.gemini.spi.JsonParser;
 
@@ -44,6 +53,8 @@ public class GeminiTester {
             multiChatTurn(genAi);
             textAndImage(genAi);
             embedContents(genAi);
+            functionCall(genAi);
+            functionResponse(genAi);
         }
 
 
@@ -109,6 +120,78 @@ public class GeminiTester {
                 .build();
         genAi.generateContentStream(chatModel)
                 .forEach(System.out::println);
+    }
+
+    private static void functionCall(GenAi genAi) throws ExecutionException, InterruptedException, TimeoutException {
+        System.out.println("----- Function call");
+        GenerativeModel chatModel = GenerativeModel.builder()
+                .modelName(ModelVariant.GEMINI_1_5_PRO)
+                .addContent(new Content.TextContent(
+                        Content.Role.USER.roleName(),
+                        "What is the current weather in Zurich?"
+                ))
+                .addFunctionDeclaration(new FunctionDeclaration(
+                        "getCurrentWeather",
+                        "Get the current weather for a city.",
+                        Schema.builder()
+                                .type(Schema.Type.OBJECT)
+                                .properties(Map.of("city", Schema.builder()
+                                        .type(Schema.Type.STRING)
+                                        .build()))
+                                .build()
+                ))
+                .build();
+        genAi.generateContent(chatModel)
+                .thenAccept(generatedContent -> {
+                    System.out.println(generatedContent);
+                    if (generatedContent.functionCall() == null) {
+                        throw new RuntimeException("Expected a function call...");
+                    }
+                })
+                .get(20, TimeUnit.SECONDS);
+    }
+
+    private static void functionResponse(GenAi genAi) throws ExecutionException, InterruptedException, TimeoutException {
+        System.out.println("----- Function response");
+        GenerativeModel chatModel = GenerativeModel.builder()
+                .modelName(ModelVariant.GEMINI_1_5_PRO)
+                .addContent(new Content.TextContent(
+                        Content.Role.USER.roleName(),
+                        "What is the current weather in Zurich?"
+                ))
+                .addContent(Content.functionCallContent(
+                        Content.Role.MODEL,
+                        new FunctionCall(
+                                "getCurrentWeather",
+                                null
+                        )
+                ))
+                .addContent(Content.functionResponseContent(
+                        Content.Role.USER,
+                        new FunctionResponse(
+                                "getCurrentWeather",
+                                Map.of("temperatureCelsius", "13")
+                        )
+                ))
+                .addFunctionDeclaration(new FunctionDeclaration(
+                        "getCurrentWeather",
+                        "Get the current weather for a city.",
+                        Schema.builder()
+                                .type(Schema.Type.OBJECT)
+                                .properties(Map.of("city", Schema.builder()
+                                        .type(Schema.Type.STRING)
+                                        .build()))
+                                .build()
+                ))
+                .build();
+        genAi.generateContent(chatModel)
+                .thenAccept(generatedContent -> {
+                    System.out.println(generatedContent);
+                    if (generatedContent.text() == null) {
+                        throw new RuntimeException("Expected a text...");
+                    }
+                })
+                .get(20, TimeUnit.SECONDS);
     }
 
     private static void generateContentStream(GenAi genAi) {
